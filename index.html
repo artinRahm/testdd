@@ -1,296 +1,75 @@
-<!DOCTYPE html>
-<html lang="en">
-	<head>
+<html lang="en"><head>
 		<!-- initialize theme vars
     https://coolors.co/10002b-240046-3c096c-5a189a-7b2cbf-9d4edd-c77dff-e0aaff -->
 
 		<!-- initialize externals -->
-		<meta content="#c77dff" data-react-helmet="true" name="theme-color" />
-		<meta name="googlebot" content="index, follow, snippet" />
-		<meta property="og:type" content="website">
-		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-		<meta property="og:title" content="IXL | Math, Language Arts, Science, Social Studies, and Spanish"/>
-		<meta
-		  property="og:description"
-		  content="IXL is the world's most popular subscription-based learning site for K–12. Used by over 17 million students, IXL provides personalized learning in more than 17,000 topics, covering math, language arts, science, social studies, and Spanish. Interactive questions, awards, and certificates keep kids motivated as they master skills."
-		/>
-		<meta property="og:url" content="https://www.ixl.com"/>
-		<meta property="og:type" content="website"/>
-		<meta property="og:site_name" content="IXL Learning"/>
-		<meta property="og:image"content="https://www.ixl.com/dv3/powZqMuTE7du4asFrVyNGxxoqkw/yui3/opengraph/assets/general_us.png"/>
+		
+	<script type="application/ld+json">
+        {
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            "name": "Selenite",
+            "alternateName": "selenite.cc",
+            "url": "https://selenite.cc",
+            "logo": "https://selenite.cc/favicon.png",
+            "sameAs": [
+                "https://github.com/selenite-cc",
+                "https://youtube.com/@selenitecc",
+                "https://tiktok.com/@selenitecc",
+                "https://selenite.cc",
+            ]
+        }
+    </script>
 
 		<!-- initialize my stuff -->
-		<script src="/js/all.min.js"></script>
-
-		<link rel="stylesheet" href="/css/main.css" />
-		<link rel="stylesheet" href="/css/sidebar.css" />
-		<link rel="manifest" href="/manifest.json" />
-
-		<!-- seo + other things -->
-		<title>IXL | Math, Language Arts, Science, Social Studies, and Spanish</title>
-		<link rel="icon" href="https://ixl.com/ixl-favicon.png" id="favicon" />
-		<!-- <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3415518411898563" crossorigin="anonymous"></script> -->
+		<script src="/js/all.js"></script>
+		<script src="/js/main.js"></script>
+		<!-- <script src="/js/widget.js"></script> -->
 		<script>
-			window.addEventListener('beforeunload', function (event) {
-			    event.preventDefault();
-			    event.returnValue = '';
-			    return 'Are you sure you want to leave? Any unsaved changes will be lost.';
-			});
-			function connectToSocket() {
-				let socket = new WebSocket("/socket");
-				socket.addEventListener("open", () => {
-					let cookies = document.cookie.split("; ");
-					for (let i = 0; i < cookies.length; i++) {
-						if (cookies[i].trim().startsWith("token=")) {
-							socket.send(cookies[i].trim());
-						}
-					}
-				});
-				socket.addEventListener("message", (e)=>{
-					if(e.data.split("=")[0] == "online") {
-						socket.send("1");
-						document.getElementById("online").innerText = `currently online: ${e.data.split("=")[1]}`;
-					} else {
-						if(e.data.startsWith("annc")) {
-							let message = e.data.split(";;");
-							sAlert(message[1], message[2]);
-						}
-					}
-				})
-				socket.addEventListener("close", () => {
-					setTimeout(() => {
-						connectToSocket();
-					}, 1000 * 3)
-				})
-			}
+			document.addEventListener("DOMContentLoaded", () => {
+				setBackground();
+				fetch("/quotes.json")
+					.then((response) => response.json())
+					.then((data) => {
+						const randomQuote = data[Math.floor(Math.random() * data.length)];
 
-			let currentPanic = {key: "", url: ""};
-			const weatherCodeToEmoji = {
-			    0: '☀️',
-						
-			    1: '🌤️',
-			    2: '⛅',
-			    3: '☁️',
-						
-			    45: '🌫️',
-			    48: '🌫️',
-						
-			    51: '🌦️',
-			    53: '🌧️',
-			    55: '🌧️',
-			    56: '🌧️',
-			    57: '🌧️',
-						
-			    61: '🌧️',
-			    63: '🌧️',
-			    65: '🌧️',
-			    66: '🥶🌧️',
-			    67: '🥶🌧️',
-						
-			    71: '❄️',
-			    73: '❄️',
-			    75: '❄️',
-			    77: '🌨️',
-						
-			    80: '🌧️',
-			    81: '🌧️',
-			    82: '🌧️',
-						
-			    85: '🌨️',
-			    86: '🌨️',
-						
-			    95: '⛈️',
-			    96: '⛈️',
-			    99: '⛈️',
-			};
+						if (randomQuote.includes("OGNUM1") && randomQuote.includes("SQRTNUM1")) {
+							const ognum = Math.floor(Math.random() * 3000);
+							randomQuote = `the square root of ${ognum} is ${Math.sqrt(ognum)}`;
+						} else if (randomQuote.includes("CURRENTURL")) {
+							randomQuote = window.location.hostname;
+						}
 
-			async function getWeather() {
-				// we do not store this data :)
-            	let locationData = await fetch("https://speed.cloudflare.com/meta")
-            	.then(data => data.json());
-
-            	let weatherData = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${locationData.latitude}&longitude=${locationData.longitude}&current=temperature_2m,weather_code&temperature_unit=fahrenheit`)
-            	.then(data => data.json());
-
-				document.getElementById("weather").innerText = `${Math.round(weatherData["current"]["temperature_2m"])}°F ${weatherCodeToEmoji[weatherData["current"]["weather_code"]]}`
-			}
-			function updateTime() {
-				document.getElementById("time").innerText = (new Date()).toLocaleTimeString();
-			}
-			function sAlert(title, message) {
-				let alertHolder = document.createElement("alert");
-				let alertTitle = document.createElement("h1");
-				alertTitle.innerHTML = title;
-				let alertMessage = document.createElement("p");
-				alertMessage.innerHTML = message;
-				alertHolder.appendChild(alertTitle);
-				alertHolder.appendChild(alertMessage);
-				document.body.appendChild(alertHolder);
-				alertHolder.addEventListener("click", alertHolder.remove);
-				setTimeout(() => {
-					alertHolder.remove();
-				}, 1000 * 15)
-			}
-			document.addEventListener("DOMContentLoaded", async ()=>{
-				connectToSocket();
-				getWeather();
-				setInterval(getWeather, 1000 * 60 * 30);
-				setInterval(updateTime, 1000 / 2);
-				let hash = location.hash.substring(1);
-				if(hash) {
-					// location.hash = "";
-					if(hash.startsWith("/u/")) {
-						document.getElementById("iframe").src = hash;
-					} else if(hash.startsWith("/g/")) {
-						document.querySelector("loading-game").style.display = "flex";
-						await fetch("/resources/games.json")
-						.then(data => data.json())
-						.then(data => {
-							data.forEach(el => {
-								if(el.directory == hash.substring(3)) {
-									document.getElementById("iframe").src = `/loader.html?title=${encodeURIComponent(el.name)}&dir=${el.directory}&img=${el.image}&type=g`
-								}
-							})
-						})
-						document.querySelector("loading-game").style.display = "none";
-					} else if(hash.startsWith("/a/")) {
-						document.querySelector("loading-game").style.display = "flex";
-						await fetch("/resources/apps.json")
-						.then(data => data.json())
-						.then(data => {
-							data.forEach(el => {
-								if(el.directory == hash.substring(3)) {
-									document.getElementById("iframe").src = `/loader.html?title=${encodeURIComponent(el.name)}&dir=${el.directory}&img=${el.image}&type=g`
-								}
-							})
-						});
-						document.querySelector("loading-game").style.display = "none";
-					}
-				}
-				let currentCloak = {name: "", icon: ""};
-				setInterval(()=>{
-					if(localStorage.getItem("selenite.tab-cloak")) {
-						let cloak = JSON.parse(localStorage.getItem("selenite.tab-cloak"));
-						if((cloak.name != currentCloak.name) || (cloak.icon != currentCloak.icon)) {
-							document.title = cloak.name.length > 0 ? cloak.name : "Selenite"
-							document.getElementById("favicon").href = cloak.icon.length > 0 ? "https://s2.googleusercontent.com/s2/favicons?domain_url=" + cloak.icon : "favicon.ico"
-							currentCloak = cloak;
-						}
-					};
-					if(localStorage.getItem("selenite.panic-mode")) {
-						let panic = JSON.parse(localStorage.getItem("selenite.panic-mode"));
-						if((panic.key != currentPanic.key) || (panic.url != currentPanic.url)) {
-							currentPanic = panic;
-						}
-					}
-				}, 500);
-				document.addEventListener("keydown", (e) => {
-					if(currentPanic.key.length > 0 && currentPanic.url.length > 0) {
-						if(e.key = currentPanic.key) {
-							location.href = currentPanic.url;
-						}
-					}
-				})
-				document.getElementById("iframe").contentWindow.document.addEventListener("keydown", (e) => {
-					if(currentPanic.key.length > 0 && currentPanic.url.length > 0) {
-						if(e.key = currentPanic.key) {
-							location.href = currentPanic.url;
-						}
-					}
-				})
-				document.getElementById("iframe").addEventListener("load", () => {
-					document.getElementById("iframe").contentWindow.addEventListener("beforeunload", () => {
-						alert("unloading! show loading bar")
+						document.getElementById("randomquote").innerHTML = randomQuote;
 					})
-				});
-				document.querySelectorAll(".sidebar-item").forEach((item) => {
-					if(item.childNodes[0].target) {
-						item.childNodes[0].addEventListener("click", (e)=>{
-							console.log("created event listneer")
-							e.preventDefault();
-							document.getElementById("iframe").src = item.childNodes[0].target;
-						})
-					} else if(item.childNodes[0].id == "openblank") {
-						item.childNodes[0].addEventListener("click", (e)=>{
-							e.preventDefault();
-							win = window.open();
-							win.document.body.style.margin = "0";
-							win.document.body.style.height = "100vh";
-							html = `<style>*{margin:0;padding:0;border:none;height:100vh;width:100vw}</style><iframe src=${location.href}></iframe>`;
-							win.document.querySelector("html").innerHTML = html;
-							location.href = "https://google.com";
-							window.close();
-						})
-					} else if(item.childNodes[0].id == "fullscreen") {
-						item.childNodes[0].addEventListener("click", (e)=>{
-							document.getElementById("iframe").requestFullscreen();
-						})
-					}
-				})
-				document.getElementById("open-bottom-menu").addEventListener("click", ()=>{
-					document.getElementById("bottom-menu").setAttribute("enabled", !(document.getElementById("bottom-menu").getAttribute("enabled") === "true"));
-					document.getElementById("open-bottom-menu").setAttribute("enabled", !(document.getElementById("open-bottom-menu").getAttribute("enabled") === "true"));
-				});
-				document.getElementById("bottom-menu").addEventListener("click", ()=>{
-					document.getElementById("bottom-menu").setAttribute("enabled", !(document.getElementById("bottom-menu").getAttribute("enabled") === "true"));
-					document.getElementById("open-bottom-menu").setAttribute("enabled", !(document.getElementById("open-bottom-menu").getAttribute("enabled") === "true"));
-				});
-			})
+					.catch((error) => console.error("Error loading quotes:", error));
+			});
 		</script>
-	</head>
-	<mobile-warning><h1 class="title">your device is not supported!</h1><p>please rotate your screen for the best experience.</p></mobile-warning>
-	<loading-game><h1 class="title">we are loading your game!</h1><p>please allow us to fetch the data first, this should only take a second.</p></loading-game>
-	<body>
-        <iframe id="iframe" src="home.html"></iframe>
-		<!-- to do
-		add colors -->
-		<sidebar>
-			<div class="sidebar-item"><a href="#" target="/home"><img src="/img/home.svg" /></a><div class="sidebar-item-descriptor">home</div></div> <!-- home -->
-			<div class="sidebar-item"><a href="#" target="/projects"><img src="/img/games.svg" /></a><div class="sidebar-item-descriptor">games</div></div> <!-- games -->
-			<div class="sidebar-item"><a href="#" target="/apps"><img src="/img/apps.svg" /></a><div class="sidebar-item-descriptor">apps</div></div> <!-- apps -->
-			<div class="sidebar-item"><a href="#" target="/bookmarklets"><img src="/img/bookmarklets.svg" /></a><div class="sidebar-item-descriptor">bookmarklets</div></div> <!-- reload -->
-			<div class="sidebar-item"><a href="#" id="openblank"><img src="/img/open.svg" /></a><div class="sidebar-item-descriptor">open blank</div></div> <!-- open blank -->
-			<div class="sidebar-item"><a href="#" id="fullscreen"><img src="/img/fullscreen.svg" /></a><div class="sidebar-item-descriptor">fullscreen</div></div> <!-- open blank -->
-			<div class="sidebar-divider"></div>
-			<div class="sidebar-item"><a href="#" target="/u/"><img src="/img/user.svg" /></a><div class="sidebar-item-descriptor">user profile</div></div> <!-- user -->
-			<div class="sidebar-item"><a href="#" target="/settings"><img src="/img/settings.svg" /></a><div class="sidebar-item-descriptor">settings</div></div> <!-- settings -->
-			<div class="sidebar-item"><a href="#" target="/info"><img src="/img/info.svg" /></a><div class="sidebar-item-descriptor">information</div></div> <!-- info -->
-        </sidebar>
-		<div id="open-bottom-menu"></div>
-		<div id="bottom-menu">
-			<div class="bottom-item"><p id="online">currently online: --</p></div>
-			<div class="bottom-item"><p>|</p></div>
-			<div class="bottom-item"><p id="weather">--°F 🌩️</p></div>
-			<div class="bottom-item"><p>|</p></div>
-			<div class="bottom-item"><p id="time">7:41:21 pm</p></div>
-		</div>
-		<div style="display:none">
-			<h1 id="edu-title">Johnson Education</h1>
-			<button id="edu-button">Math Lessons</button>
-			<p id="edu-text">Educational Resources for Students</p>
-			<p id="edu-text">Science Textbooks</p>
-			<h1>Educational Resources and Online Learning Platform</h1>
-      		<p>Comprehensive education platform for students, teachers, and lifelong learners. Access online courses, study materials, exam preparation resources, and interactive learning tools.</p>
-      		<section>
-      		  <h2>Academic Subjects</h2>
-      		  <p>Mathematics, Science, English, History, Literature, Writing, Reading, Social Studies, Geography, Biology, Chemistry, Physics, Algebra, Geometry, Calculus, Statistics, Computer Science, Programming, Foreign Languages, Art, Music</p>
-      		</section>
-      		<section>
-      		  <h2>Educational Services</h2>
-      		  <p>Online courses, college credit, exam preparation, test prep, tutoring, homework help, study guides, practice tests, educational videos, interactive lessons, learning resources, curriculum development, academic support, student success, teacher resources, educational technology, e-learning, distance education, virtual classroom, online tutoring, academic coaching</p>
-      		</section>
-      		<section>
-      		  <h2>Student Levels</h2>
-      		  <p>K-12 education, elementary school, middle school, high school, college, university, graduate school, continuing education, adult learning, professional development, certification programs, degree programs, homeschool education</p>
-      		</section>
-      		<section>
-      		  <h2>Test Preparation</h2>
-      		  <p>SAT prep, ACT prep, GRE prep, GMAT prep, LSAT prep, MCAT prep, AP courses, Advanced Placement, standardized tests, college entrance exams, professional certification exams, state assessments, final exams, midterms</p>
-      		</section>
-      		<section>
-      		  <h3>Learning Methods</h3>
-      		  <p>Interactive learning, video lessons, practice quizzes, flashcards, study notes, educational games, adaptive learning, personalized education, self-paced learning, collaborative learning, project-based learning, STEM education, critical thinking, problem solving</p>
-      		</section>
-		</div>
-	</body>
-</html>
+
+		<link rel="stylesheet" href="/css/main.css">
+		<link rel="stylesheet" href="/css/pages.css">
+		<link rel="manifest" href="/manifest.json">
+		<!-- seo + other things -->
+		<title>Selenite</title>
+		<link rel="icon" href="/favicon.ico">
+		<script async="" src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3415518411898563" crossorigin="anonymous"></script>
+	<script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script></head>
+	<body theme="" style="--gradient-x: 86%; --gradient-y: 83%;" data-new-gr-c-s-check-loaded="14.1265.0" data-gr-ext-installed=""><alerts> </alerts>
+	
+			<h1 class="title">selenite.</h1>
+			<noscript>enable javascript if you want the games to actually load</noscript>
+			<p id="randomquote">congrats on who got a 53 by using this site</p>
+			<div class="samerow">
+				<div class="img-container">
+					<a href="/users"><img src="img/user_index.svg"></a>
+				</div>
+				<div class="img-container">
+					<a href="projects.html"><img src="img/games.svg"></a>
+				</div>
+				<div class="img-container">
+					<a target="_blank" href="https://discord.gg/7jyufnwJNf"><img src="img/discord.svg"></a>
+				</div>
+			</div>
+	
+
+<div id="pjs"><canvas class="particles-js-canvas-el" style="width: 100%; height: 100%;" width="1845" height="1023"></canvas></div><div style="width: 30px; height: 30px; background-color: var(--color-1); position: absolute; border-radius: 100%; filter: blur(50px); transition-duration: 0s; opacity: 1; pointer-events: none; top: 93px; left: 207px;"></div></body><grammarly-desktop-integration data-grammarly-shadow-root="true"></grammarly-desktop-integration></html>
